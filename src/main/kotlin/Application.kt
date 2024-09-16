@@ -8,6 +8,7 @@ import com.sksamuel.hoplite.addFileSource
 import dev.inmo.tgbotapi.bot.ktor.telegramBot
 import dev.inmo.tgbotapi.extensions.behaviour_builder.buildBehaviour
 import dev.inmo.tgbotapi.extensions.utils.updates.flowsUpdatesFilter
+import dev.inmo.tgbotapi.extensions.utils.updates.retrieving.includeWebhookHandlingInRoute
 import dev.inmo.tgbotapi.extensions.utils.updates.retrieving.longPolling
 import dev.inmo.tgbotapi.types.ChatId
 import dev.inmo.tgbotapi.types.RawChatId
@@ -15,10 +16,15 @@ import dev.limebeck.openconf.bot.createQuestionsBehavior
 import dev.limebeck.openconf.common.RealTimeProvider
 import dev.limebeck.openconf.db.DbConfiguration
 import dev.limebeck.openconf.db.FlywayMigrationService
-import dev.limebeck.openconf.domain.*
+import dev.limebeck.openconf.domain.QuestionsRepositoryKtorm
+import dev.limebeck.openconf.domain.QuestionsRepositoryMock
+import dev.limebeck.openconf.domain.QuestionsService
+import dev.limebeck.openconf.domain.createQuestionRoutes
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 fun main(args: Array<String>) =
     SuspendApp {
@@ -64,10 +70,24 @@ fun main(args: Array<String>) =
 
         embeddedServer(Netty, port = 8080) {
             routing {
+                if (config.botReceiver == BotReceiver.WEBHOOK) {
+                    val scope = CoroutineScope(Dispatchers.Default)
+                    route("/webhook") {
+                        includeWebhookHandlingInRoute(
+                            scope,
+                            {
+                                it.printStackTrace()
+                            },
+                            block = filter.asUpdateReceiver
+                        )
+                    }
+                }
                 createQuestionRoutes(questionsRepository)
             }
         }.start()
 
-        bot.longPolling(filter).join()
+        if (config.botReceiver == BotReceiver.LONGPOLLING) {
+            bot.longPolling(filter).join()
+        }
     }
 

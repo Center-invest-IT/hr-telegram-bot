@@ -2,10 +2,16 @@ package dev.limebeck.openconf
 
 data class ApplicationConfig(
     val botToken: String,
+    val botReceiver: BotReceiver = BotReceiver.LONGPOLLING,
     val chatId: Long,
     val questions: List<Question>,
     val dbConfig: DbConfig
 )
+
+enum class BotReceiver {
+    WEBHOOK,
+    LONGPOLLING
+}
 
 sealed interface DbConfig {
     data object Mock : DbConfig
