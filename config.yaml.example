@@ -1,0 +1,27 @@
+dbConfig:
+  url: "jdbc:postgresql://localhost:5432/openconf"
+  driver: "org.postgresql.Driver"
+  username: "openconf"
+  password: "openconf"
+# rethinkDb
+#  port: 28015
+#  hostname: localhost
+#  dbName: test
+#  username: admin
+#  password:
+botToken: "xxx"
+chatId: -123456789
+questions:
+  - id: first
+    title: "Первый вопрос"
+    description: "Описание первого вопроса"
+    helpMessage: "Тут будет подсказка первого вопроса"
+  - description: "Описание второго вопроса"
+    title: "Второй вопрос"
+    helpMessage: "Тут будет подсказка второго вопроса"
+    id: second
+    answers:
+      - "Ответ 1"
+      - "Ответ 2"
+      - "Ответ 3"
+      - "Ответ 4"

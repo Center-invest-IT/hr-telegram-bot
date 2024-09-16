@@ -1,0 +1,26 @@
+services:
+#  rethinkdb:
+#    image: rethinkdb:latest
+#
+#    ports:
+#      - "28015:28015"
+#      - "8080:8080"
+#    volumes:
+#      - "data:/data"
+#    command:
+#      - rethinkdb
+#      - --bind
+#      - all
+#      - --initial-password
+#      - 7bf90a5e
+
+  pg:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: openconf
+      POSTGRES_USER: openconf
+      POSTGRES_DB: openconf
+    ports:
+      - "5432:5432"
+volumes:
+  data:

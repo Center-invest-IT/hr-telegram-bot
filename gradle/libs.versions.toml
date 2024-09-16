@@ -1,0 +1,11 @@
+[versions]
+
+flyway = "10.15.2"
+
+[libraries]
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+
+postgres = { module = "org.postgresql:postgresql", version = "42.7.3" }
+h2 = { module = "com.h2database:h2", version = "2.2.224" }
+hikari = { module = "com.zaxxer:HikariCP", version = "5.1.0" }
