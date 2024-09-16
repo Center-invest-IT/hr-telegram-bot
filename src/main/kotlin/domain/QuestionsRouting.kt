@@ -1,11 +1,14 @@
 package dev.limebeck.openconf.domain
 
+import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import dev.inmo.tgbotapi.types.RawChatId
 import dev.inmo.tgbotapi.types.UserId
 import dev.limebeck.openconf.common.html.RowDataProvider
 import dev.limebeck.openconf.common.html.respondTable
 import dev.limebeck.openconf.common.html.toTableCell
+import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.html.a
 
@@ -36,6 +39,25 @@ fun Routing.createQuestionRoutes(
             dataProvider = questionsRepository::getAllAnswers,
             viewMapper = answerTableMapper
         )
+    }
+
+    get("/answers/csv") {
+        val answers = questionsRepository.getAllAnswers().map {
+            mapOf(
+                "UserId" to it.userInfo.userId.chatId.long.toString(),
+                "UserName" to it.userInfo.username,
+                "QuestionId" to it.questionId.value,
+                "Answer" to it.answer,
+                "DateTime" to it.dateTime.toString()
+            )
+        }
+        val csvFile = csvWriter().writeAllAsString(
+            listOf(
+                (answers.firstOrNull() ?: emptyMap()).keys.toList(),
+                *(answers.map { it.values.toList() }).toTypedArray()
+            )
+        )
+        call.respondBytes(csvFile.encodeToByteArray(), contentType = ContentType.Text.CSV)
     }
 
     get("/answers/{userId}") {
