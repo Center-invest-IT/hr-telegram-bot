@@ -83,4 +83,21 @@ fun Routing.createQuestionRoutes(
             )
         }
     }
+    get("/users/csv") {
+        val answers = questionsRepository.getAllUserStates().map {
+            mapOf(
+                "UserId" to it.userInfo.userId.chatId.long.toString(),
+                "UserName" to it.userInfo.username,
+                "State" to it.state.name
+            )
+        }
+
+        val csvFile = csvWriter().writeAllAsString(
+            listOf(
+                (answers.firstOrNull() ?: emptyMap()).keys.toList(),
+                *(answers.map { it.values.toList() }).toTypedArray()
+            )
+        )
+        call.respondBytes(csvFile.encodeToByteArray(), contentType = ContentType.Text.CSV)
+    }
 }
