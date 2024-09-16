@@ -3,12 +3,6 @@ dbConfig:
   driver: "org.postgresql.Driver"
   username: "openconf"
   password: "openconf"
-# rethinkDb
-#  port: 28015
-#  hostname: localhost
-#  dbName: test
-#  username: admin
-#  password:
 botToken: "xxx"
 chatId: -123456789
 questions:

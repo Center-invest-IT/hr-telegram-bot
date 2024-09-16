@@ -9,13 +9,6 @@ data class ApplicationConfig(
 
 sealed interface DbConfig {
     data object Mock : DbConfig
-    data class RethinkDbConfig(
-        val hostname: String,
-        val port: Int,
-        val dbName: String,
-        val username: String,
-        val password: String?
-    ) : DbConfig
 
     data class KtormConfig(
         val url: String,

@@ -38,9 +38,6 @@ fun main(args: Array<String>) =
 
         val questionsRepository = when (config.dbConfig) {
             is DbConfig.Mock -> QuestionsRepositoryMock(timeProvider)
-            is DbConfig.RethinkDbConfig -> {
-                QuestionsRepositoryRethink(config.dbConfig, timeProvider)
-            }
 
             is DbConfig.KtormConfig -> {
                 val dbConfiguration = DbConfiguration(
