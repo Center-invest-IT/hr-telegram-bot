@@ -28,6 +28,7 @@ object UserStates : Table<Nothing>("user_state") {
     val userId = long("user_id").primaryKey()
     val username = varchar("username")
     val state = varchar("state")
+    val updateTime = timestamp("update_time")
 }
 
 class QuestionsRepositoryKtorm(
@@ -120,10 +121,12 @@ class QuestionsRepositoryKtorm(
                 set(AnswersTable.userName, userInfo.username)
                 set(UserStates.userId, userInfo.userId.chatId.long)
                 set(UserStates.state, state.name)
+                set(UserStates.updateTime, timeProvider.getCurrent())
             }
         } else {
             database.update(UserStates) {
                 set(UserStates.state, state.name)
+                set(UserStates.updateTime, timeProvider.getCurrent())
                 where { UserStates.userId eq userInfo.userId.chatId.long }
             }
         }
@@ -138,9 +141,9 @@ class QuestionsRepositoryKtorm(
                         userId = UserId(RawChatId(it[UserStates.userId]!!)),
                         username = it[UserStates.username]!!
                     ),
-                    state = UserState.valueOf(it[UserStates.state]!!)
+                    state = UserState.valueOf(it[UserStates.state]!!),
+                    updateTime = it[UserStates.updateTime]!!
                 )
-
             }
     }
 }

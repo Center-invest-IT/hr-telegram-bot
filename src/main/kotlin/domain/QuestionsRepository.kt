@@ -19,6 +19,7 @@ interface QuestionsRepository {
 data class UserInfoWithState(
     val userInfo: UserInfo,
     val state: UserState,
+    val updateTime: Instant
 )
 
 data class UserInfo(
@@ -83,7 +84,11 @@ class QuestionsRepositoryMock(
 
     override fun getAllUserStates(): List<UserInfoWithState> {
         return userState.entries.map { (userId, state) ->
-            UserInfoWithState(UserInfo(userId, "Unknown"), state)
+            UserInfoWithState(
+                userInfo = UserInfo(userId = userId, username = "Unknown"),
+                state = state,
+                updateTime = timeProvider.getCurrent()
+            )
         }
     }
 }

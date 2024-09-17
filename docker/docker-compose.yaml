@@ -7,5 +7,13 @@ services:
       POSTGRES_DB: openconf
     ports:
       - "5432:5432"
+  bot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - "../config.docker.yaml:/app/config.yaml"
 volumes:
   data:
