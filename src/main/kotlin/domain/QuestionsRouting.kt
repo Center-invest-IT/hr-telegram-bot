@@ -79,7 +79,8 @@ fun Routing.createQuestionRoutes(
                     else
                         +userInfo.username
                 },
-                "State" to { +state.name }
+                "State" to { +state.name },
+                "UpdateTime" to { updateTime.toTableCell() }
             )
         }
     }
@@ -88,7 +89,8 @@ fun Routing.createQuestionRoutes(
             mapOf(
                 "UserId" to it.userInfo.userId.chatId.long.toString(),
                 "UserName" to it.userInfo.username,
-                "State" to it.state.name
+                "State" to it.state.name,
+                "UpdateTime" to it.updateTime.toString()
             )
         }
 
