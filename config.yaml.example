@@ -5,6 +5,9 @@ dbConfig:
   password: "openconf"
 botToken: "xxx"
 botReceiver: WEBHOOK
+auth:
+  username: openconf
+  password: openconf
 chatId: -123456789
 questions:
   - id: first

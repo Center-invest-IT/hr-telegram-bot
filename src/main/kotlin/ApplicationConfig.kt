@@ -5,7 +5,13 @@ data class ApplicationConfig(
     val botReceiver: BotReceiver = BotReceiver.LONGPOLLING,
     val chatId: Long,
     val questions: List<Question>,
-    val dbConfig: DbConfig
+    val dbConfig: DbConfig,
+    val auth: Auth
+)
+
+data class Auth(
+    val username: String,
+    val password: String
 )
 
 enum class BotReceiver {

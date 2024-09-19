@@ -20,6 +20,8 @@ import dev.limebeck.openconf.domain.QuestionsRepositoryKtorm
 import dev.limebeck.openconf.domain.QuestionsRepositoryMock
 import dev.limebeck.openconf.domain.QuestionsService
 import dev.limebeck.openconf.domain.createQuestionRoutes
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.routing.*
@@ -69,6 +71,17 @@ fun main(args: Array<String>) =
         }
 
         embeddedServer(Netty, port = 8080) {
+            install(Authentication) {
+                basic {
+                    validate { credentials ->
+                        if (credentials.name == config.auth.username && credentials.password == config.auth.password) {
+                            UserIdPrincipal(credentials.name)
+                        } else {
+                            null
+                        }
+                    }
+                }
+            }
             routing {
                 if (config.botReceiver == BotReceiver.WEBHOOK) {
                     val scope = CoroutineScope(Dispatchers.Default)
@@ -82,7 +95,9 @@ fun main(args: Array<String>) =
                         )
                     }
                 }
-                createQuestionRoutes(questionsRepository)
+                authenticate {
+                    createQuestionRoutes(questionsRepository)
+                }
             }
         }.start()
 

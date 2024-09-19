@@ -12,7 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.html.a
 
-fun Routing.createQuestionRoutes(
+fun Route.createQuestionRoutes(
     questionsRepository: QuestionsRepository
 ) {
     val answerTableMapper: Answer.() -> RowDataProvider = {
