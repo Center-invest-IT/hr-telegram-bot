@@ -12,7 +12,6 @@ import dev.inmo.tgbotapi.types.chat.member.ChatMember
 import dev.inmo.tgbotapi.types.message.abstracts.Message
 import dev.inmo.tgbotapi.utils.row
 import dev.limebeck.openconf.Question
-import dev.limebeck.openconf.domain.QuestionsService
 
 val Message.userId: UserId
     get() = this.from!!.id
@@ -26,21 +25,9 @@ suspend fun BehaviourContext.isMemberOfChat(userId: UserId, chatId: ChatId): Boo
     )
 }.getOrDefault(false)
 
-const val SELECT_QUESTION_PREFIX = "SELECT_QUESTION:"
 const val ANSWER_TO_QUESTION_PREFIX = "ANSWER_TO_QUESTION:"
 
-suspend fun QuestionsService.buildQuestionsKeyboardForUser(userId: UserId) = inlineKeyboard {
-    row {
-        getAll(userId).map {
-            dataButton(
-                text = (if (it.completed) "✅ " else "") + it.question.title,
-                data = SELECT_QUESTION_PREFIX + it.question.id.value
-            )
-        }
-    }
-}
-
-suspend fun BehaviourContext.respondQuestion(userId: UserId, question: Question) {
+suspend fun BehaviourContext.sendQuestion(userId: UserId, question: Question) {
     when (question) {
         is Question.OpenQuestion -> {
             sendTextMessage(userId, "${question.title}\n${question.description}")

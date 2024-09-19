@@ -20,12 +20,13 @@ import dev.inmo.tgbotapi.types.message.textsources.link
 import dev.inmo.tgbotapi.types.message.textsources.plus
 import dev.inmo.tgbotapi.types.message.textsources.regular
 import dev.inmo.tgbotapi.types.userLink
+import dev.inmo.tgbotapi.utils.RiskFeature
 import dev.limebeck.openconf.Question
-import dev.limebeck.openconf.QuestionId
 import dev.limebeck.openconf.domain.QuestionsService
 import dev.limebeck.openconf.domain.UserInfo
 import dev.limebeck.openconf.domain.UserState
 
+@OptIn(RiskFeature::class)
 suspend fun BehaviourContext.createQuestionsBehavior(
     questionsService: QuestionsService,
     chatId: ChatId,
@@ -50,7 +51,7 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                 questionsService.setUserState(userInfo, UserState.AWAIT_SUBSCRIPTION)
                 sendTextMessage(
                     userId,
-                    regular("Привет! Подпишись на наш канал: ")
+                    regular("Привет! Подпишись на наш канал перед началом: ")
                         .plus(
                             link(
                                 chat.title,
@@ -68,11 +69,11 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                                 chat.title,
                                 chat.chatLink!!
                             )
-                        ).plus(
-                            "\nВыбери вопрос:"
-                        ),
-                    replyMarkup = questionsService.buildQuestionsKeyboardForUser(userId)
+                        )
                 )
+                val nextQuestion = questionsService.getAll(userId).first { !it.completed }.question
+                questionsService.markActiveQuestion(userId, questionId = nextQuestion.id)
+                sendQuestion(userId, nextQuestion)
             }
         }.onFailure { it.printStackTrace() }
     }
@@ -130,9 +131,11 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                         } else {
                             sendTextMessage(
                                 userId,
-                                text = "Выберите следующий вопрос:",
-                                replyMarkup = questionsService.buildQuestionsKeyboardForUser(message.userId)
+                                text = "Следующий вопрос:"
                             )
+                            val nextQuestion = questionsService.getAll(userId).first { !it.completed }.question
+                            questionsService.markActiveQuestion(userId, questionId = nextQuestion.id)
+                            sendQuestion(userId, nextQuestion)
                         }
                     }
 
@@ -163,9 +166,12 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                     questionsService.setUserState(userInfo, UserState.AWAIT_ANSWERS)
                     sendTextMessage(
                         userId,
-                        "Спасибо за подписку!\nВыбери вопрос: ",
-                        replyMarkup = questionsService.buildQuestionsKeyboardForUser(userId)
+                        "Спасибо за подписку! Начнём"
                     )
+
+                    val nextQuestion = questionsService.getAll(userId).first { !it.completed }.question
+                    questionsService.markActiveQuestion(userId, questionId = nextQuestion.id)
+                    sendQuestion(userId, nextQuestion)
                 }
 
                 else -> {
@@ -197,37 +203,9 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                     //pass
                 }
 
-                messageData.startsWith(SELECT_QUESTION_PREFIX) -> {
-                    val questionId = QuestionId(messageData.removePrefix(SELECT_QUESTION_PREFIX))
-                    questionsService.markActiveQuestion(
-                        userId = userId,
-                        questionId = questionId
-                    )
-                    val question = questionsService.getById(questionId, userId)
-                    if (!question.completed) {
-                        respondQuestion(userId, question = question.question)
-                    } else {
-                        sendTextMessage(
-                            userId,
-                            text = "Вы уже отвечали на этот вопрос. Выберите другой:",
-                            replyMarkup = questionsService.buildQuestionsKeyboardForUser(message.from.id)
-                        )
-                    }
-                }
-
                 messageData.startsWith(ANSWER_TO_QUESTION_PREFIX) -> {
                     val activeQuestion = questionsService.getActive(userId)
                         ?: throw RuntimeException("<3d0c3390> Нет активного вопрос для участника $userId")
-
-                    val question = questionsService.getById(activeQuestion.id, userId)
-                    if (question.completed) {
-                        sendTextMessage(
-                            userId,
-                            text = "Вы уже отвечали на этот вопрос. Выберите другой:",
-                            replyMarkup = questionsService.buildQuestionsKeyboardForUser(message.from.id)
-                        )
-                        return@runCatching
-                    }
 
                     questionsService.addAnswer(
                         userInfo,
@@ -247,9 +225,10 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                     } else {
                         sendTextMessage(
                             userId,
-                            text = "Выберите следующий вопрос:",
-                            replyMarkup = questionsService.buildQuestionsKeyboardForUser(message.from.id)
+                            text = "Следующий вопрос:"
                         )
+
+                        sendQuestion(userId, questionsService.getAll(userId).first { !it.completed }.question)
                     }
                 }
             }
