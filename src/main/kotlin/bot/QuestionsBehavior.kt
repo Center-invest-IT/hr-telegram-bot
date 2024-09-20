@@ -42,7 +42,7 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                 username = message.from!!.username?.username ?: message.from!!.userLink
             )
             if (questionsService.getAll(userId).all { it.completed }) {
-                sendTextMessage(userId, "Вы уже ответили на все вопросы!")
+                sendTextMessage(userId, "Твой ответ отрабатывается. Возможно, именно он будет победным! В случае выигрыша с тобой свяжется организатор☺\uFE0F!")
                 return@runCatching
             }
 
@@ -120,13 +120,13 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                     is Question.OpenQuestion -> {
                         questionsService.addAnswer(userInfo, activeQuestion.id, message.content.text)
                         questionsService.markActiveQuestion(userId, null)
-                        reply(message, "Ваш ответ принят")
+                        reply(message, "Твой ответ принят")
 
                         if (questionsService.getAll(userId).all { it.completed }) {
                             questionsService.setUserState(userInfo, UserState.DONE)
                             sendTextMessage(
                                 userId,
-                                "Поздравляем, твои ответы приняты. В случае выигрыша с тобой свяжутся организаторы."
+                                "Поздравляем, твой ответ принят. В случае выигрыша с тобой свяжутся организаторы."
                             )
                         } else {
                             val nextQuestion = questionsService.getAll(userId).first { !it.completed }.question
@@ -190,7 +190,7 @@ suspend fun BehaviourContext.createQuestionsBehavior(
             )
 
             if (questionsService.getAll(userId).all { it.completed }) {
-                sendTextMessage(userId, "Вы уже ответили на все вопросы!")
+                sendTextMessage(userId, "Твой ответ отрабатывается. Возможно, именно он будет победным! В случае выигрыша с тобой свяжется организатор☺\uFE0F!")
                 return@runCatching
             }
 
@@ -216,7 +216,7 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                         questionsService.setUserState(userInfo, UserState.DONE)
                         sendTextMessage(
                             userId,
-                            "Поздравляем, твои ответы приняты. В случае выигрыша с тобой свяжутся организаторы."
+                            "Поздравляем, твой ответ принят. В случае выигрыша с тобой свяжутся организаторы."
                         )
                     } else {
                         sendQuestion(userId, questionsService.getAll(userId).first { !it.completed }.question)
