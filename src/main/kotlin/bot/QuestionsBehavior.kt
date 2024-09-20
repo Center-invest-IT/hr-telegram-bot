@@ -51,7 +51,7 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                 questionsService.setUserState(userInfo, UserState.AWAIT_SUBSCRIPTION)
                 sendTextMessage(
                     userId,
-                    regular("Привет! Подпишись на наш канал перед началом: ")
+                    regular("Привет! Для участия в розыгрыше нужно подписаться на наш телеграмм-канал: ")
                         .plus(
                             link(
                                 chat.title,
@@ -63,7 +63,7 @@ suspend fun BehaviourContext.createQuestionsBehavior(
             } else {
                 sendTextMessage(
                     userId,
-                    regular("Привет! Здорово, ты уже подписчик нашего канала: ")
+                    regular("Привет! Здорово, ты уже подписчик нашего канала и можешь участвовать в розыгрыше: ")
                         .plus(
                             link(
                                 chat.title,
