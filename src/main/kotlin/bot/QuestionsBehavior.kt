@@ -51,13 +51,13 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                 questionsService.setUserState(userInfo, UserState.AWAIT_SUBSCRIPTION)
                 sendTextMessage(
                     userId,
-                    regular("Привет! Для участия в розыгрыше нужно подписаться на наш телеграмм-канал: ")
+                    regular("Привет! Подпишись на наш канал")
                         .plus(
                             link(
                                 chat.title,
                                 chat.chatLink!!
                             )
-                        )
+                        ).plus(" перед началом")
 
                 )
             } else {
@@ -160,10 +160,6 @@ suspend fun BehaviourContext.createQuestionsBehavior(
             when (state) {
                 UserState.AWAIT_SUBSCRIPTION -> {
                     questionsService.setUserState(userInfo, UserState.AWAIT_ANSWERS)
-                    sendTextMessage(
-                        userId,
-                        "Отлично! Теперь приступим к задаче \uD83D\uDD25"
-                    )
 
                     val nextQuestion = questionsService.getAll(userId).first { !it.completed }.question
                     questionsService.markActiveQuestion(userId, questionId = nextQuestion.id)
