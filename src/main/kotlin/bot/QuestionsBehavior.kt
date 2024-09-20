@@ -110,7 +110,7 @@ suspend fun BehaviourContext.createQuestionsBehavior(
             questionsService.setUserState(userInfo, UserState.AWAIT_ANSWERS)
 
             if (questionsService.getAll(userId).all { it.completed }) {
-                sendTextMessage(userId, "Вы уже ответили на все вопросы!")
+                sendTextMessage(userId, "Твой ответ отрабатывается. Возможно, именно он будет победным! В случае выигрыша с тобой свяжется организатор☺\uFE0F!")
                 return@runCatching
             }
 
@@ -126,13 +126,9 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                             questionsService.setUserState(userInfo, UserState.DONE)
                             sendTextMessage(
                                 userId,
-                                "Поздравляем, вы ответили на все вопросы!"
+                                "Поздравляем, твои ответы приняты. В случае выигрыша с тобой свяжутся организаторы."
                             )
                         } else {
-                            sendTextMessage(
-                                userId,
-                                text = "Следующий вопрос:"
-                            )
                             val nextQuestion = questionsService.getAll(userId).first { !it.completed }.question
                             questionsService.markActiveQuestion(userId, questionId = nextQuestion.id)
                             sendQuestion(userId, nextQuestion)
@@ -166,7 +162,7 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                     questionsService.setUserState(userInfo, UserState.AWAIT_ANSWERS)
                     sendTextMessage(
                         userId,
-                        "Спасибо за подписку! Начнём"
+                        "Отлично! Теперь приступим к задаче \uD83D\uDD25"
                     )
 
                     val nextQuestion = questionsService.getAll(userId).first { !it.completed }.question
@@ -214,20 +210,15 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                     )
                     questionsService.markActiveQuestion(userId, null)
 
-                    sendTextMessage(userId, "Ваш ответ принят")
+                    sendTextMessage(userId, "Твой ответ принят")
 
                     if (questionsService.getAll(userId).all { it.completed }) {
                         questionsService.setUserState(userInfo, UserState.DONE)
                         sendTextMessage(
                             userId,
-                            "Поздравляем, вы ответили на все вопросы!"
+                            "Поздравляем, твои ответы приняты. В случае выигрыша с тобой свяжутся организаторы."
                         )
                     } else {
-                        sendTextMessage(
-                            userId,
-                            text = "Следующий вопрос:"
-                        )
-
                         sendQuestion(userId, questionsService.getAll(userId).first { !it.completed }.question)
                     }
                 }
