@@ -31,8 +31,8 @@ suspend fun BehaviourContext.createQuestionsBehavior(
     questionsService: QuestionsService,
     chatId: ChatId,
 ) {
-    val chat = getChat(chatId).asChannelChat()
-        ?: throw RuntimeException("<f0b9648e> Чат не найден")
+//    val chat = getChat(chatId).asChannelChat()
+//        ?: throw RuntimeException("<f0b9648e> Чат не найден")
 
     onCommand("start") { message ->
         runCatching {
@@ -42,39 +42,47 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                 username = message.from!!.username?.username ?: message.from!!.userLink
             )
             if (questionsService.getAll(userId).all { it.completed }) {
-                sendTextMessage(userId, "Твой ответ отрабатывается. Возможно, именно он будет победным! В случае выигрыша с тобой свяжется организатор☺\uFE0F!")
+                sendTextMessage(
+                    userId,
+                    """
+                        Твоя заявка уже принята! Наш заботливый HR тебе напишет ☺️
+                    """.trimIndent()
+                )
                 return@runCatching
             }
+            sendTextMessage(
+                userId,
+                """
+                        Привет! Я бот-помощник банка "Центр-инвест" 💚 
 
-            val isMember = isMemberOfChat(userId, chatId)
-            if (!isMember) {
-                questionsService.setUserState(userInfo, UserState.AWAIT_SUBSCRIPTION)
-                sendTextMessage(
-                    userId,
-                    regular("Привет! Подпишись на наш канал")
-                        .plus(
-                            link(
-                                chat.title,
-                                chat.chatLink!!
-                            )
-                        ).plus(" перед началом")
-
-                )
-            } else {
-                sendTextMessage(
-                    userId,
-                    regular("Привет! Здорово, ты уже подписчик нашего канала и можешь участвовать в розыгрыше: ")
-                        .plus(
-                            link(
-                                chat.title,
-                                chat.chatLink!!
-                            )
-                        )
-                )
-                val nextQuestion = questionsService.getAll(userId).first { !it.completed }.question
-                questionsService.markActiveQuestion(userId, questionId = nextQuestion.id)
-                sendQuestion(userId, nextQuestion)
-            }
+                        Помогу тебе подать заявку на стажировку☺️
+                    """.trimIndent()
+            )
+            sendTextMessage(
+                userId,
+                """
+                        Коротко о главном:
+                        
+                        💪 Полезный опыт в реальных командах
+                        
+                        💸 Стажировка оплачивается
+                        
+                        📆 Гибкий график, чтобы совмещать с учебой
+                        
+                        📝 Возможность трудоустройства в штат после завершения
+                        
+                        😋 Бесплатное питание
+                    """.trimIndent()
+            )
+            sendTextMessage(
+                userId,
+                """
+                        Для того, чтобы подать заявку, укажи информацию о себе
+                    """.trimIndent()
+            )
+            val nextQuestion = questionsService.getAll(userId).first { !it.completed }.question
+            questionsService.markActiveQuestion(userId, questionId = nextQuestion.id)
+            sendQuestion(userId, nextQuestion)
         }.onFailure { it.printStackTrace() }
     }
 
@@ -92,25 +100,37 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                 username = message.from!!.username?.username ?: message.from!!.userLink
             )
 
-            val isMember = isMemberOfChat(userId, chatId)
-            if (!isMember) {
-                sendTextMessage(
-                    userId,
-                    regular("Сначала подпишись на наш канал: ")
-                        .plus(
-                            link(
-                                chat.title,
-                                chat.chatLink!!
-                            )
-                        )
-
-                )
-                return@runCatching
-            }
+//            val isMember = isMemberOfChat(userId, chatId)
+//            if (!isMember) {
+//                sendTextMessage(
+//                    userId,
+//                    regular("Сначала подпишись на наш канал: ")
+//                        .plus(
+//                            link(
+//                                chat.title,
+//                                chat.chatLink!!
+//                            )
+//                        )
+//
+//                )
+//                return@runCatching
+//            }
             questionsService.setUserState(userInfo, UserState.AWAIT_ANSWERS)
 
             if (questionsService.getAll(userId).all { it.completed }) {
-                sendTextMessage(userId, "Твой ответ отрабатывается. Возможно, именно он будет победным! В случае выигрыша с тобой свяжется организатор☺\uFE0F!")
+                questionsService.setUserState(userInfo, UserState.DONE)
+                sendTextMessage(
+                    userId,
+                    regular("""
+                                Твоя заявка принята! Наш заботливый HR тебе напишет ☺️
+                                 
+                                Пока можешь следить за актуальными стажировками в нашем 
+                            """.trimIndent()) +
+                            link(
+                                "Telegram-канале",
+                                "https://t.me/ci_jobs"
+                            )
+                )
                 return@runCatching
             }
 
@@ -120,13 +140,21 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                     is Question.OpenQuestion -> {
                         questionsService.addAnswer(userInfo, activeQuestion.id, message.content.text)
                         questionsService.markActiveQuestion(userId, null)
-                        reply(message, "Твой ответ принят")
+//                        reply(message, "Твой ответ принят")
 
                         if (questionsService.getAll(userId).all { it.completed }) {
                             questionsService.setUserState(userInfo, UserState.DONE)
                             sendTextMessage(
                                 userId,
-                                "Поздравляем, твой ответ принят. В случае выигрыша с тобой свяжутся организаторы."
+                                regular("""
+                                Твоя заявка принята! Наш заботливый HR тебе напишет ☺️
+                                 
+                                Пока можешь следить за актуальными стажировками в нашем 
+                            """.trimIndent()) +
+                                        link(
+                                            "Telegram-канале",
+                                            "https://t.me/ci_jobs"
+                                        )
                             )
                         } else {
                             val nextQuestion = questionsService.getAll(userId).first { !it.completed }.question
@@ -186,7 +214,12 @@ suspend fun BehaviourContext.createQuestionsBehavior(
             )
 
             if (questionsService.getAll(userId).all { it.completed }) {
-                sendTextMessage(userId, "Твой ответ отрабатывается. Возможно, именно он будет победным! В случае выигрыша с тобой свяжется организатор☺\uFE0F!")
+                sendTextMessage(
+                    userId,
+                    """
+                        Твоя заявка уже принята! Наш заботливый HR тебе напишет ☺️
+                    """.trimIndent()
+                )
                 return@runCatching
             }
 
@@ -206,13 +239,21 @@ suspend fun BehaviourContext.createQuestionsBehavior(
                     )
                     questionsService.markActiveQuestion(userId, null)
 
-                    sendTextMessage(userId, "Твой ответ принят")
+//                    sendTextMessage(userId, "Твой ответ принят")
 
                     if (questionsService.getAll(userId).all { it.completed }) {
                         questionsService.setUserState(userInfo, UserState.DONE)
                         sendTextMessage(
                             userId,
-                            "Поздравляем, твой ответ принят. В случае выигрыша с тобой свяжутся организаторы."
+                            regular("""
+                                Твоя заявка принята! Наш заботливый HR тебе напишет ☺️
+                                 
+                                Пока можешь следить за актуальными стажировками в нашем 
+                            """.trimIndent()) +
+                                    link(
+                                        "Telegram-канале",
+                                        "https://t.me/ci_jobs"
+                                    )
                         )
                     } else {
                         sendQuestion(userId, questionsService.getAll(userId).first { !it.completed }.question)
