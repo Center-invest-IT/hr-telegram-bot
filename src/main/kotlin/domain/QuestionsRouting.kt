@@ -3,6 +3,8 @@ package dev.limebeck.openconf.domain
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import dev.inmo.tgbotapi.types.RawChatId
 import dev.inmo.tgbotapi.types.UserId
+import dev.limebeck.openconf.common.DEFAULT_FORMATTER
+import dev.limebeck.openconf.common.format
 import dev.limebeck.openconf.common.html.RowDataProvider
 import dev.limebeck.openconf.common.html.respondTable
 import dev.limebeck.openconf.common.html.toTableCell
@@ -48,7 +50,7 @@ fun Route.createQuestionRoutes(
                 "UserName" to it.userInfo.username,
                 "QuestionId" to it.questionId.value,
                 "Answer" to it.answer,
-                "DateTime" to it.dateTime.toString()
+                "DateTime" to it.dateTime.format(DEFAULT_FORMATTER)
             )
         }
         val csvFile = csvWriter().writeAllAsString(
@@ -90,7 +92,7 @@ fun Route.createQuestionRoutes(
                 "UserId" to it.userInfo.userId.chatId.long.toString(),
                 "UserName" to it.userInfo.username,
                 "State" to it.state.name,
-                "UpdateTime" to it.updateTime.toString()
+                "UpdateTime" to it.updateTime.format(DEFAULT_FORMATTER)
             )
         }
 
