@@ -1,6 +1,8 @@
 package dev.limebeck.openconf.common.html
 
+import dev.limebeck.openconf.common.DEFAULT_FORMATTER
 import dev.limebeck.openconf.common.MSK_ZONE
+import dev.limebeck.openconf.common.format
 import kotlinx.html.*
 import java.time.Instant
 
@@ -26,7 +28,7 @@ fun HEAD.addCodeHighlight() {
 }
 
 context (HtmlBlockTag)
-fun Instant.toTableCell() = this.atZone(MSK_ZONE).toString().trimEnd('Z').split('T').map {
+fun Instant.toTableCell() = this.format(DEFAULT_FORMATTER).split(' ').map {
     div {
         p { +it }
     }
