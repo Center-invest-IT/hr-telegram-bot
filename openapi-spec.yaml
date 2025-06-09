@@ -1,0 +1,352 @@
+openapi: 3.0.3
+info:
+  title: Telegram Bots Management API
+  version: 1.0.0
+  description: API для управления Telegram чат-ботами, их вопросами и ответами пользователей.
+  
+servers:
+  - url: http://localhost:8080/api
+    description: Local development
+
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+
+  schemas:
+    Bot:
+      type: object
+      required: [id, token]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор бота.
+        name:
+          type: string
+          description: Название бота.
+        token:
+          type: string
+          description: Telegram Bot Token.
+        receiver:
+          type: string
+          enum: [WEBHOOK, LONGPOLLING]
+          default: WEBHOOK
+        chatId:
+          type: integer
+          description: Telegram Chat ID.
+        createdAt:
+          type: string
+          format: date-time
+
+    Question:
+      type: object
+      required: [id, botId, title]
+      properties:
+        id:
+          type: string
+          description: Идентификатор вопроса.
+        botId:
+          type: string
+          format: uuid
+          description: Идентификатор Telegram-бота.
+        title:
+          type: string
+        description:
+          type: string
+        helpMessage:
+          type: string
+        answers:
+          type: array
+          items:
+            type: string
+          description: Возможные варианты ответа.
+
+    UserInfo:
+      type: object
+      required: [userId, username]
+      properties:
+        userId:
+          type: string
+          description: Уникальный идентификатор пользователя в Telegram.
+        username:
+          type: string
+          description: Username пользователя.
+
+    UserState:
+      type: string
+      enum: [NOT_MEMBER, AWAIT_SUBSCRIPTION, AWAIT_ANSWERS, DONE]
+
+    UserInfoWithState:
+      type: object
+      required: [userInfo, state, updateTime]
+      properties:
+        userInfo:
+          $ref: '#/components/schemas/UserInfo'
+        state:
+          $ref: '#/components/schemas/UserState'
+        updateTime:
+          type: string
+          format: date-time
+
+    Answer:
+      type: object
+      required: [questionId, userInfo, answer, dateTime]
+      properties:
+        questionId:
+          type: string
+          description: Идентификатор вопроса.
+        botId:
+          type: string
+          format: uuid
+          description: Идентификатор бота (для выбора в списке ответов).
+        userInfo:
+          $ref: '#/components/schemas/UserInfo'
+        answer:
+          type: string
+          description: Ответ пользователя.
+        dateTime:
+          type: string
+          format: date-time
+
+security:
+  - BasicAuth: []
+
+paths:
+
+  /bots:
+    get:
+      summary: Получить список всех добавленных ботов
+      security:
+        - BasicAuth: []
+      responses:
+        200:
+          description: Список ботов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bot'
+    post:
+      summary: Добавить нового Telegram-бота
+      security:
+        - BasicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, name]
+              properties:
+                token:
+                  type: string
+                name:
+                  type: string
+                receiver:
+                  type: string
+                  enum: [WEBHOOK, LONGPOLLING]
+                chatId:
+                  type: integer
+      responses:
+        201:
+          description: Бот успешно добавлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bot'
+        400:
+          description: Ошибка валидации данных
+
+  /bots/{botId}:
+    delete:
+      summary: Удалить Telegram-бота
+      security:
+        - BasicAuth: []
+      parameters:
+        - in: path
+          name: botId
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        204:
+          description: Бот успешно удален
+        404:
+          description: Бот не найден
+
+  /bots/{botId}/questions:
+    get:
+      summary: Получить список вопросов конкретного бота
+      security:
+        - BasicAuth: []
+      parameters:
+        - name: botId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Список вопросов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Question'
+    post:
+      summary: Создать вопрос для конкретного бота
+      security:
+        - BasicAuth: []
+      parameters:
+        - name: botId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                helpMessage:
+                  type: string
+                answers:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        201:
+          description: Вопрос создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+
+  /bots/{botId}/questions/{questionId}:
+    put:
+      summary: Редактировать вопрос
+      security:
+        - BasicAuth: []
+      parameters:
+        - name: botId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: questionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                helpMessage:
+                  type: string
+                answers:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        200:
+          description: Вопрос обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+        404:
+          description: Вопрос не найден
+
+    delete:
+      summary: Удалить вопрос
+      security:
+        - BasicAuth: []
+      parameters:
+        - name: botId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: questionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Вопрос удален
+        404:
+          description: Вопрос не найден
+
+  /bots/{botId}/questions/{questionId}/answers:
+    get:
+      summary: Получить ответы на вопрос
+      security:
+        - BasicAuth: []
+      parameters:
+        - name: botId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: questionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ответы пользователей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Answer'
+
+  /bots/{botId}/answers:
+    get:
+      summary: Получить все ответы пользователей для выбранного бота
+      security:
+        - BasicAuth: []
+      parameters:
+        - name: botId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Список ответов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Answer'
