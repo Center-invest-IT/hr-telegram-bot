@@ -7,7 +7,7 @@ import org.ktorm.dsl.*
 import org.ktorm.schema.*
 import java.util.*
 
-object BotsTable: Table<Nothing>("bots") {
+object BotsTable : Table<Nothing>("bots") {
     val id = uuid("id").primaryKey()
     val botUsername = varchar("bot_username")
     val botToken = varchar("bot_token")
@@ -15,7 +15,7 @@ object BotsTable: Table<Nothing>("bots") {
     val status = boolean("status")
 }
 
-object BotsChatsTable: Table<Nothing>("bots_chats") {
+object BotsChatsTable : Table<Nothing>("bots_chats") {
     val id = uuid("id").primaryKey()
     val chatId = long("chat_id")
     val botUsername = varchar("bot_username")
@@ -23,8 +23,8 @@ object BotsChatsTable: Table<Nothing>("bots_chats") {
 
 class BotsRepositoryKtorm(
     config: DbConfig.KtormConfig
-): BotsRepository {
-    val database = Database.connect(
+) : BotsRepository {
+    private val database = Database.connect(
         url = config.url,
         driver = config.driver,
         user = config.username,
@@ -39,25 +39,48 @@ class BotsRepositoryKtorm(
         status = r[BotsTable.status]!!
     )
 
-    override fun getAllBots(): List<Bot> {
+    override fun findAllBots(): List<Bot> {
         return database
             .from(BotsTable)
             .select()
-            .map (::botsMapper)
+            .map(::botsMapper)
     }
 
-    override fun addBot(botUserName: String, botToken: String) {
+    override fun findBotById(id: UUID): Bot? {
+        return database
+            .from(BotsTable)
+            .select()
+            .where {
+                BotsTable.id eq id
+            }
+            .map { row ->
+                Bot(
+                    id = row[BotsTable.id]!!,
+                    botUserName = row[BotsTable.botUsername]!!,
+                    botToken = row[BotsTable.botToken]!!,
+                    description = row[BotsTable.description]!!,
+                    status = row[BotsTable.status]!!
+                )
+            }
+            .firstOrNull()
+    }
+
+    override fun addBot(botUserName: String, botToken: String, description: String, status: Boolean) {
         database.insert(BotsTable) {
             set(BotsTable.id, UUID.randomUUID())
             set(BotsTable.botToken, botToken)
             set(BotsTable.botUsername, botUserName)
+            set(BotsTable.description, description)
+            set(BotsTable.status, status)
         }
     }
 
-    override fun updateBot(id: UUID, botUserName: String, botToken: String) {
+    override fun updateBot(id: UUID, botUserName: String, botToken: String, description: String, status: Boolean) {
         database.update(BotsTable) {
             set(BotsTable.botToken, botToken)
             set(BotsTable.botUsername, botUserName)
+            set(BotsTable.description, description)
+            set(BotsTable.status, status)
             where {
                 BotsTable.id eq id
             }
@@ -88,9 +111,9 @@ class BotsRepositoryKtorm(
 
     }
 
-    override fun updateBotChannel(id: UUID, botUserName: String, chatId: Long) {
+    override fun updateBotChannel(id: UUID, botUsername: String, chatId: Long) {
         database.update(BotsChatsTable) {
-            set(BotsChatsTable.botUsername, botUserName)
+            set(BotsChatsTable.botUsername, botUsername)
             set(BotsChatsTable.chatId, chatId)
             where {
                 BotsChatsTable.id eq id
