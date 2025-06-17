@@ -28,6 +28,8 @@ dependencies {
 
     implementation("org.ktorm:ktorm-core:4.1.1")
 
+    implementation("org.mindrot:jbcrypt:0.4")
+
     implementation("com.sksamuel.hoplite:hoplite-core:2.7.5")
     implementation("com.sksamuel.hoplite:hoplite-yaml:2.7.5")
 
