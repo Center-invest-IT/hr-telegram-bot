@@ -1,9 +1,9 @@
 package dev.limebeck.openconf.db
 
-import dev.inmo.kslog.common.debug
-import dev.inmo.kslog.common.error
-import dev.inmo.kslog.common.info
-import dev.inmo.kslog.common.logger
+import dev.limebeck.openconf.common.debug
+import dev.limebeck.openconf.common.error
+import dev.limebeck.openconf.common.info
+import dev.limebeck.openconf.common.logger
 import org.flywaydb.core.Flyway
 
 class FlywayMigrationService(
