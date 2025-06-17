@@ -24,8 +24,6 @@ dependencies {
     implementation("dev.inmo:tgbotapi:18.2.0")
     implementation("dev.inmo:krontab:2.2.9")
 
-    implementation("com.rethinkdb:rethinkdb-driver:2.4.4")
-
     implementation("org.ktorm:ktorm-core:4.1.1")
 
     implementation("org.mindrot:jbcrypt:0.4")
@@ -44,6 +42,9 @@ dependencies {
     implementation("io.ktor:ktor-server-auth")
 
     testImplementation(kotlin("test"))
+
+    implementation(platform("org.testcontainers:testcontainers-bom:1.21.1"))
+    testImplementation("org.testcontainers:postgresql")
 }
 
 tasks.test {
