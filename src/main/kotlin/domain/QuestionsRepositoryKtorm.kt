@@ -35,7 +35,7 @@ class QuestionsRepositoryKtorm(
     config: DbConfig.KtormConfig,
     private val timeProvider: TimeProvider
 ) : QuestionsRepository {
-    val database = Database.connect(
+    private val database = Database.connect(
         url = config.url,
         driver = config.driver,
         user = config.username,
