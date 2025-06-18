@@ -5,9 +5,9 @@ import java.time.Instant
 import java.util.UUID
 
 interface QuestionRepository {
-    fun getAllQuestions(): List<QuestionInfo>
-    fun getAllAnswers(): List<AnswerInfo>
-    fun getUserAnswers(userId: Long): List<AnswerInfo>
+    fun findAllQuestions(): List<QuestionInfo>
+    fun findAllAnswers(): List<AnswerInfo>
+    fun findUserAnswers(userId: Long): List<AnswerInfo>
     fun addQuestion(question: String)
     fun addAnswer(userInfo: UserInfo, questionId: UUID, answer: String)
     fun deleteQuestion(id: UUID)

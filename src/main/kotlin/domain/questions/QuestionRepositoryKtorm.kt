@@ -48,21 +48,21 @@ class QuestionRepositoryKtorm(
         createdTime = r[AnswersTable.createdTime]!!
     )
 
-    override fun getAllQuestions(): List<QuestionInfo> {
+    override fun findAllQuestions(): List<QuestionInfo> {
         return database
             .from(QuestionsTable)
             .select()
             .map(::questionsMapper)
     }
 
-    override fun getAllAnswers(): List<AnswerInfo> {
+    override fun findAllAnswers(): List<AnswerInfo> {
         return database
             .from(AnswersTable)
             .select()
             .map(::answersMapper)
     }
 
-    override fun getUserAnswers(userId: Long): List<AnswerInfo> {
+    override fun findUserAnswers(userId: Long): List<AnswerInfo> {
         return database
             .from(AnswersTable)
             .select()
