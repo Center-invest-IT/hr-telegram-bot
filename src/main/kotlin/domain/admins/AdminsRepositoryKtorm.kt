@@ -1,10 +1,7 @@
 package dev.limebeck.openconf.domain.admin
 
 
-import dev.inmo.tgbotapi.types.RawChatId
-import dev.inmo.tgbotapi.types.UserId
 import dev.limebeck.openconf.DbConfig
-import dev.limebeck.openconf.QuestionId
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import org.ktorm.schema.*
@@ -26,6 +23,15 @@ class AdminsRepositoryKtorm(
         password = config.password
     )
 
+    override fun getAdminByLogin(login: String): AdminInfo? {
+        return database
+            .from(AdminsTable)
+            .select()
+            .where { AdminsTable.login eq login }
+            .map(::AdminsMapper)
+            .firstOrNull()
+    }
+
     override fun getAllAdmins(): List<AdminInfo> {
         return database
             .from(AdminsTable)
@@ -41,22 +47,28 @@ class AdminsRepositoryKtorm(
         }
     }
 
-    override fun deleteAdmin(admin: AdminInfo) {
-        database.delete(AdminsTable) { AdminsTable.id eq admin.id }
+    override fun deleteAdmin(admin: UUID) {
+        database.delete(AdminsTable) {
+            AdminsTable.id eq admin
+        }
     }
 
     override fun updateAdmin(admin: AdminInfo) {
-
+        database.update(AdminsTable) {
+            set(AdminsTable.login, admin.login)
+            set(AdminsTable.password, admin.password)
+            where { AdminsTable.id eq admin.id }
+        }
     }
 
-    override fun getAdminHashpass(id: AdminId): List<AdminInfo> {
+    override fun getAdminHashpass(id: AdminId): AdminInfo? {
         return database
             .from(AdminsTable)
             .select()
             .where { AdminsTable.id eq id.uuid }
             .map(::AdminsMapper)
+            .firstOrNull()
     }
-
     private fun AdminsMapper(row: QueryRowSet): AdminInfo = AdminInfo(
         id = row[AdminsTable.id]!!,
         login = row[AdminsTable.login]!!,

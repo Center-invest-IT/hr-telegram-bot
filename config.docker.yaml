@@ -1,0 +1,25 @@
+dbConfig:
+  url: "jdbc:postgresql://pg:5432/openconf"
+  driver: "org.postgresql.Driver"
+  username: "openconf"
+  password: "openconf"
+botToken: "7914381519:AAGOA8cEhn6tI3Qsp18tOiMydZSq0tIL8HY"
+botReceiver: LONGPOLLING
+auth:
+  username: openconf
+  password: openconf
+chatId: -1002752479118
+questions:
+  - id: first
+    title: "Первый вопрос"
+    description: "Описание первого вопроса"
+    helpMessage: "Тут будет подсказка первого вопроса"
+  - description: "Описание второго вопроса"
+    title: "Второй вопрос"
+    helpMessage: "Тут будет подсказка второго вопроса"
+    id: second
+    answers:
+      - "Ответ 1"
+      - "Ответ 2"
+      - "Ответ 3"
+      - "Ответ 4"

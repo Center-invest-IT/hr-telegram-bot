@@ -16,23 +16,18 @@ class AdminsService(
         repository.addAdmin(admin)
     }
 
-    fun deleteAdmin(id: UUID) {
-        val existing = repository.getAdminHashpass(AdminId(id)).firstOrNull()
-        if (existing != null) {
-            repository.deleteAdmin(existing)
-        }
-    }
+    fun deleteAdmin(id: UUID) = repository.deleteAdmin(id)
 
     fun updateAdmin(admin: AdminInfo) {
+        val hash = BCrypt.hashpw(admin.password, BCrypt.gensalt())
+        val admin = AdminInfo(password = hash, login = admin.login, id = admin.id)
         repository.updateAdmin(admin)
     }
 
-    fun login(login: String, RawPassword: String): Boolean {
-        val admin = repository.getAllAdmins().firstOrNull { it.login == login }
-        return admin?.let { BCrypt.checkpw(RawPassword, it.password) } ?: false }
-
-
-    fun getAdminById(id: UUID): AdminInfo? {
-        return repository.getAdminHashpass(AdminId(id)).firstOrNull()
+    fun login(login: String, rawPassword: String): Boolean {
+        val admin = repository.getAdminByLogin(login)
+        return admin?.let { BCrypt.checkpw(rawPassword, it.password) } ?: false
     }
+
+    fun getAdminById(id: UUID): AdminInfo? = repository.getAdminHashpass(AdminId(id))
 }

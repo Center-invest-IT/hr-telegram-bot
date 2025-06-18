@@ -7,9 +7,10 @@ import kotlin.uuid.Uuid
 
 interface AdminsRepository {
     fun getAllAdmins(): List<AdminInfo>
-    fun getAdminHashpass(id: AdminId): List<AdminInfo>
+    fun getAdminHashpass(id: AdminId): AdminInfo?
+    fun getAdminByLogin(login: String): AdminInfo?
     fun addAdmin(admin: AdminInfo)
-    fun deleteAdmin (admin: AdminInfo)
+    fun deleteAdmin (admin: UUID)
     fun updateAdmin(admin: AdminInfo)
 }
 
@@ -30,6 +31,10 @@ class AdminsRepositoryMock : AdminsRepository {
         return admins.values.toList()
     }
 
+    override fun getAdminByLogin(login: String): AdminInfo? {
+        return admins.values.firstOrNull { it.login == login }
+    }
+
     override fun addAdmin(admin: AdminInfo) {
         admins[admin.id] = admin
     }
@@ -39,12 +44,12 @@ class AdminsRepositoryMock : AdminsRepository {
             admins[admin.id] = admin
         }
     }
-    override fun deleteAdmin(admin: AdminInfo) {
-        admins.remove(admin.id)
+    override fun deleteAdmin(admin: UUID) {
+        admins.remove(admin)
     }
 
-    override fun getAdminHashpass(adminId: AdminId): List<AdminInfo> {
-        return admins[adminId.uuid]?.let { listOf(it) } ?: emptyList()
+    override fun getAdminHashpass(id: AdminId): AdminInfo? {
+        return admins[id.uuid]
     }
 }
 
