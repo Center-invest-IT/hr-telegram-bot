@@ -65,20 +65,20 @@ class BotsRepositoryKtorm(
             .firstOrNull()
     }
 
-    override fun addBot(botUserName: String, botToken: String, description: String, status: Boolean) {
+    override fun addBot(botUsername: String, botToken: String, description: String, status: Boolean) {
         database.insert(BotsTable) {
             set(BotsTable.id, UUID.randomUUID())
             set(BotsTable.botToken, botToken)
-            set(BotsTable.botUsername, botUserName)
+            set(BotsTable.botUsername, botUsername)
             set(BotsTable.description, description)
             set(BotsTable.status, status)
         }
     }
 
-    override fun updateBot(id: UUID, botUserName: String, botToken: String, description: String, status: Boolean) {
+    override fun updateBot(id: UUID, botUsername: String, botToken: String, description: String, status: Boolean) {
         database.update(BotsTable) {
             set(BotsTable.botToken, botToken)
-            set(BotsTable.botUsername, botUserName)
+            set(BotsTable.botUsername, botUsername)
             set(BotsTable.description, description)
             set(BotsTable.status, status)
             where {
@@ -98,8 +98,8 @@ class BotsRepositoryKtorm(
             .where {
                 BotsTable.botUsername like "$botUsername%"
             }
-            .limit(10)
             .map(::botsMapper)
+            .take(10)
     }
 
     override fun setChannelToBot(botUserName: String, chatId: Long) {
@@ -123,5 +123,22 @@ class BotsRepositoryKtorm(
 
     override fun deleteChannelFromBotBytUsername(botUsername: String) {
         database.delete(BotsChatsTable) { BotsChatsTable.botUsername eq botUsername }
+    }
+
+    override fun findBotChannelByBotUsername(botUsername: String): BotChannel? {
+        return database
+            .from(BotsChatsTable)
+            .select()
+            .where {
+                BotsChatsTable.botUsername eq botUsername
+            }
+            .map { row ->
+                BotChannel(
+                    id = row[BotsChatsTable.id]!!,
+                    chatId = row[BotsChatsTable.chatId]!!,
+                    botUsername = row[BotsChatsTable.botUsername]!!
+                )
+            }
+            .firstOrNull()
     }
 }
