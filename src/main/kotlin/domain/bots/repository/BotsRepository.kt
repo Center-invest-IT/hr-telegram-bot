@@ -6,29 +6,29 @@ import java.util.*
 interface BotsRepository {
     fun findAllBots(): List<Bot>
     fun findBotById(id: UUID): Bot?
-    fun addBot(botUsername: String, botToken: String, description: String, status: Boolean)
-    fun updateBot(id: UUID, botUsername: String, botToken: String, description: String, status: Boolean)
+    fun addBot(botUsername: String, botToken: String, description: String, status: BotStatus, chatId: Long?)
+    fun updateBot(id: UUID, botUsername: String, botToken: String, description: String, status: BotStatus, chatId: Long?)
     fun deleteBotById(id: UUID)
-    fun findBotByUsername(botUsername: String): List<Bot>
-    fun setChannelToBot(botUserName: String, chatId: Long)
-    fun updateBotChannel(id: UUID, botUsername: String, chatId: Long)
-    fun deleteChannelFromBotBytUsername(botUsername: String)
-
-    fun findBotChannelByBotUsername(botUsername: String): BotChannel?
+    fun findBotsByUsername(botUsername: String, botFilter: BotFilter?): List<Bot>
 }
 
 data class Bot(
     val id: UUID,
-    val botUserName: String,
+    val botUsername: String,
     val botToken: String,
     val description: String,
-    val status: Boolean
+    val chatId: Long?,
+    val status: BotStatus
 )
 
-data class BotChannel(
-    val id: UUID,
-    val chatId: Long,
-    val botUsername: String
+enum class BotStatus {
+    ACTIVE,
+    INACTIVE
+}
+
+data class BotFilter(
+    val status: BotStatus? = null
 )
+
 
 
