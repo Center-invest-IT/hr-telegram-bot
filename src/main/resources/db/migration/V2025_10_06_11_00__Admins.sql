@@ -1,6 +1,6 @@
 create table if not exists admins
 (
-    adminid         uuid      primary key,
-    adminlogin       varchar   not null,
-    hashpassword    varchar   not null
+    id        uuid      primary key,
+    login     varchar   not null,
+    password_hash   varchar   not null
 );

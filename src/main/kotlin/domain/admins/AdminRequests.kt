@@ -13,3 +13,9 @@ data class AdminLoginRequest(
     val login: String,
     val password: String
 )
+
+@Serializable
+data class ErrorResponse(
+    val error: String,
+    val details: String? = null
+)

@@ -19,24 +19,31 @@ import dev.limebeck.openconf.db.FlywayMigrationService
 import dev.limebeck.openconf.domain.QuestionsRepositoryKtorm
 import dev.limebeck.openconf.domain.QuestionsRepositoryMock
 import dev.limebeck.openconf.domain.QuestionsService
+import dev.limebeck.openconf.domain.admin.AdminsService
+import dev.limebeck.openconf.domain.admin.AdminsRepositoryKtorm
+import dev.limebeck.openconf.domain.admins.adminsRouting
 import dev.limebeck.openconf.domain.createQuestionRoutes
+import io.ktor.http.ContentType.Application.Json
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.routing.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.Json
 
 fun main(args: Array<String>) =
     SuspendApp {
-        val configLoader =
-            ConfigLoaderBuilder
-                .default()
-                .addEnvironmentSource()
-                .addCommandLineSource(args)
-                .addFileSource("config.yaml", optional = true)
-                .build()
+        val configLoader = ConfigLoaderBuilder
+            .default()
+            .addEnvironmentSource()
+            .addCommandLineSource(args)
+            .addFileSource("config.yaml", optional = true)
+            .build()
 
         val config = configLoader.loadConfigOrThrow<ApplicationConfig>()
 
@@ -46,7 +53,6 @@ fun main(args: Array<String>) =
 
         val questionsRepository = when (config.dbConfig) {
             is DbConfig.Mock -> QuestionsRepositoryMock(timeProvider)
-
             is DbConfig.KtormConfig -> {
                 val dbConfiguration = DbConfiguration(
                     dbUrl = config.dbConfig.url,
@@ -82,6 +88,11 @@ fun main(args: Array<String>) =
                     }
                 }
             }
+            install(ContentNegotiation) {
+                json(Json {})
+            }
+            val adminsService =
+                AdminsService(AdminsRepositoryKtorm(config.dbConfig as DbConfig.KtormConfig))
             routing {
                 if (config.botReceiver == BotReceiver.WEBHOOK) {
                     val scope = CoroutineScope(Dispatchers.Default)
@@ -95,8 +106,10 @@ fun main(args: Array<String>) =
                         )
                     }
                 }
+
                 authenticate {
                     createQuestionRoutes(questionsRepository)
+                    adminsRouting(adminsService)
                 }
             }
         }.start()
@@ -105,4 +118,3 @@ fun main(args: Array<String>) =
             bot.longPolling(filter).join()
         }
     }
-

@@ -1,19 +1,16 @@
 package domain
 
-import com.benasher44.uuid.uuid
-import dev.inmo.tgbotapi.requests.stickers.AddStickerToSet
 import dev.limebeck.openconf.db.DbConfiguration
 import dev.limebeck.openconf.db.FlywayMigrationService
 import org.testcontainers.containers.PostgreSQLContainer
-import dev.inmo.tgbotapi.types.RawChatId
-import dev.inmo.tgbotapi.types.UserId
 import dev.limebeck.openconf.DbConfig
+import dev.limebeck.openconf.QuestionId
+import dev.limebeck.openconf.domain.Answer
 import dev.limebeck.openconf.domain.admin.AdminId
-import dev.limebeck.openconf.domain.admin.AdminsRepository
 import dev.limebeck.openconf.domain.admin.AdminsRepositoryKtorm
 import dev.limebeck.openconf.domain.admin.AdminInfo
-import dev.limebeck.openconf.domain.admin.AdminsTable.id
 import java.util.UUID
+import kotlin.math.log
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -43,6 +40,7 @@ class AdminsRepositoryKtormTest {
     fun `Clean up`() {
         postgres.stop()
     }
+
     @Test
     fun `Work with database`(){
 
@@ -55,32 +53,74 @@ class AdminsRepositoryKtormTest {
             )
         )
 
-        assert(repository.getAllAdmins().isEmpty())
-
+        assert(repository.getAll().isEmpty())
         { "No questions should be returned" }
 
-        val testid = UUID.randomUUID()
-        val ttestid = UUID.randomUUID()
+        val testid = AdminId(UUID.randomUUID())
 
-        val testadmin = AdminInfo(
+        val testadmin1 = AdminInfo(
             id = testid,
             login = "testadmin",
-            password = "testpassword"
+            passwordHash = "testpassword"
         )
-        val ttestadmin = AdminInfo(
-            id = ttestid,
+        val testadmin2 = AdminInfo(
+            id =  testid,
             login = "ttestadmin",
-            password = "ttestpassword"
+            passwordHash = "ttestpassword"
         )
 
-        repository.addAdmin(ttestadmin)
+        //тест add
+        repository.add(testadmin1)
+        assertEquals(
+            repository.getAll().first(),
+            AdminInfo(
+                id = testadmin1.id,
+                login = testadmin1.login,
+                passwordHash = testadmin1.passwordHash
+            )
+        )
 
-        assertEquals(testadmin.id, testid)
-        assertEquals(testadmin.login, "testadmin")
-        assertEquals(testadmin.password, "testpassword")
+        //тест delete
+        repository.delete(testadmin1.id)
+        assert(repository.getAll().isEmpty())
+        { "No questions should be returned" }
 
-        val allAfterDelete = repository.getAllAdmins()
-        repository.deleteAdmin(ttestadmin.id)
-        println(repository.getAllAdmins())
+        //тест update
+        repository.add(testadmin1)
+        repository.update(testadmin2)
+        assertEquals(
+            repository.getAll().first(),
+            AdminInfo(
+                id = testadmin2.id,
+                login = testadmin2.login,
+                passwordHash = testadmin2.passwordHash
+            )
+        )
+        repository.delete(testadmin1.id)
+        assert(repository.getAll().isEmpty())
+        { "No questions should be returned" }
+
+        //тест поиска по login и по id
+        repository.add(testadmin1)
+        val foundByLogin = requireNotNull(repository.findByLogin(testadmin1.login)) {
+            "Admin not found by login"
+        }
+        val foundById = requireNotNull(repository.findById(testadmin1.id)) {
+            "Admin not found by ID"
+        }
+        assertEquals(
+            repository.getAll().first(),
+            AdminInfo(
+                id = foundByLogin.id,
+                login = foundByLogin.login,
+                passwordHash = foundByLogin.passwordHash
+            ))
+        assertEquals(
+            repository.getAll().first(),
+            AdminInfo(
+                id = foundById.id,
+                login = foundById.login,
+                passwordHash = foundById.passwordHash
+            ))
     }
 }

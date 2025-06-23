@@ -8,9 +8,9 @@ import org.ktorm.schema.*
 import java.util.*
 
 object AdminsTable : Table<Nothing>("admins") {
-    val id = uuid("adminid").primaryKey()
-    val login = varchar("adminlogin")
-    val password = varchar("hashpassword")
+    val id = uuid("id").primaryKey()
+    val login = varchar("login")
+    val password = varchar("password_hash")
 }
 
 class AdminsRepositoryKtorm(
@@ -23,7 +23,7 @@ class AdminsRepositoryKtorm(
         password = config.password
     )
 
-    override fun getAdminByLogin(login: String): AdminInfo? {
+    override fun findByLogin(login: String): AdminInfo? {
         return database
             .from(AdminsTable)
             .select()
@@ -32,36 +32,36 @@ class AdminsRepositoryKtorm(
             .firstOrNull()
     }
 
-    override fun getAllAdmins(): List<AdminInfo> {
+    override fun getAll(): List<AdminInfo> {
         return database
             .from(AdminsTable)
             .select()
             .map (::AdminsMapper)
     }
 
-    override fun addAdmin(admin: AdminInfo) {
+    override fun add(admin: AdminInfo) {
         database.insert(AdminsTable) {
-            set(AdminsTable.id, UUID.randomUUID())
+            set(AdminsTable.id, admin.id.uuid)
             set(AdminsTable.login, admin.login)
-            set(AdminsTable.password,admin.password)
+            set(AdminsTable.password, admin.passwordHash)
         }
     }
 
-    override fun deleteAdmin(admin: UUID) {
+    override fun delete(id: AdminId) {
         database.delete(AdminsTable) {
-            AdminsTable.id eq admin
+            AdminsTable.id eq id.uuid
         }
     }
 
-    override fun updateAdmin(admin: AdminInfo) {
+    override fun update(admin: AdminInfo) {
         database.update(AdminsTable) {
             set(AdminsTable.login, admin.login)
-            set(AdminsTable.password, admin.password)
-            where { AdminsTable.id eq admin.id }
+            set(AdminsTable.password, admin.passwordHash)
+            where { AdminsTable.id eq admin.id.uuid }
         }
     }
 
-    override fun getAdminHashpass(id: AdminId): AdminInfo? {
+    override fun findById(id: AdminId): AdminInfo? {
         return database
             .from(AdminsTable)
             .select()
@@ -70,8 +70,8 @@ class AdminsRepositoryKtorm(
             .firstOrNull()
     }
     private fun AdminsMapper(row: QueryRowSet): AdminInfo = AdminInfo(
-        id = row[AdminsTable.id]!!,
+        id = AdminId(row[AdminsTable.id]!!),
         login = row[AdminsTable.login]!!,
-        password = row[AdminsTable.password]!!
-   )
+        passwordHash = row[AdminsTable.password]!!
+    )
 }

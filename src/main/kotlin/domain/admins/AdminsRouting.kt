@@ -1,15 +1,32 @@
 package dev.limebeck.openconf.domain.admins
 
 import dev.limebeck.openconf.domain.admin.AdminsService
-import dev.limebeck.openconf.domain.admin.AdminInfo
-import dev.limebeck.openconf.domain.admins.AdminCreateRequest
-import dev.limebeck.openconf.domain.admins.AdminLoginRequest
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.http.*
 import java.util.*
+
+suspend fun ApplicationCall.requireUuidParameter(name: String): UUID? {
+    val idParam = parameters[name]
+    if (idParam == null) {
+        respond(
+            HttpStatusCode.BadRequest,
+            ErrorResponse(error = "Missing parameter", details = "The '$name' parameter is required.")
+        )
+        return null
+    }
+    return try {
+        UUID.fromString(idParam)
+    } catch (e: IllegalArgumentException) {
+        respond(
+            HttpStatusCode.BadRequest,
+            ErrorResponse(error = "Invalid UUID", details = "The '$name' parameter has the wrong format.")
+        )
+        null
+    }
+}
 
 fun Route.adminsRouting(
     adminsService: AdminsService
@@ -18,62 +35,60 @@ fun Route.adminsRouting(
     route("/admins") {
 
         get {
-            val admins = adminsService.getAllAdmins()
-            call.respond(admins)
+            val list = adminsService.getAllAdmins().map { admin ->
+                mapOf(
+                    "id" to admin.id.uuid.toString(),
+                    "login" to admin.login,
+                    "password" to admin.passwordHash
+                )
+            }
+            call.respond(list)
         }
 
         post("/create") {
             val request = call.receive<AdminCreateRequest>()
-            val result = adminsService.addAdminWithRawPassword(UUID.randomUUID(),request.login, request.password)
-            call.respond(HttpStatusCode.Created, result)
+            val result = adminsService.addAdminWithRawPassword(request.password, request.login)
+            call.respond(HttpStatusCode.Created)
         }
 
         delete("/{id}") {
-            val idParam = call.parameters["id"]
-            if (idParam == null) {
-                call.respond(HttpStatusCode.BadRequest, "Missing id")
-                return@delete
-            }
-            val uuid = try {
-                UUID.fromString(idParam)
-            } catch (e: IllegalArgumentException) {
-                call.respond(HttpStatusCode.BadRequest, "Invalid UUID format")
-                return@delete
-            }
+            val uuid = call.requireUuidParameter("id") ?:
+            return@delete
             adminsService.deleteAdmin(uuid)
-            call.respond(HttpStatusCode.OK, "Admin deleted")
+            call.respond(HttpStatusCode.OK)
         }
 
-        post("/admin/login") {
+        post("/login") {
             val request = call.receive<AdminLoginRequest>()
-            val success = adminsService.login(request.login, request.password)
+            val admin = adminsService.login(request.login, request.password)
 
-            if (success) {
-                call.respond(HttpStatusCode.OK, "Login successful")
+            if (admin != null) {
+                call.respond(HttpStatusCode.OK,mapOf(
+                    "id" to admin.id.toString(),
+                    "login" to admin.login,
+                    "HashPassword" to admin.passwordHash
+                ) )
             } else {
-                call.respond(HttpStatusCode.Unauthorized, "Invalid login or password")
+                call.respond(HttpStatusCode.Unauthorized,
+                    ErrorResponse(error = "Access is denied", details = "Invalid Login or Password"))
             }
         }
 
         get("/{id}/hashpass") {
-            val idParam = call.parameters["id"]
-            if (idParam == null) {
-                call.respond(HttpStatusCode.BadRequest, "Missing id")
-                return@get
-            }
-
-            val uuid = try {
-                UUID.fromString(idParam)
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, "Invalid UUID format")
-                return@get
-            }
-
+            val uuid = call.requireUuidParameter("id") ?:
+            return@get
             val admin = adminsService.getAdminById(uuid)
             if (admin == null) {
-                call.respond(HttpStatusCode.NotFound, "Admin not found")
+                call.respond(HttpStatusCode.NotFound,
+                    ErrorResponse(error = "Admin not found", details = "Id doesn't exist"))
             } else {
-                call.respond(admin)
+                call.respond(
+                    mapOf(
+                        "id" to admin.id.uuid.toString(),
+                        "login" to admin.login,
+                        "HashPassword" to admin.passwordHash
+                    )
+                )
             }
         }
     }

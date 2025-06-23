@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.0.20"
     id("io.ktor.plugin") version "2.3.12"
+    kotlin("plugin.serialization") version "1.9.0"
 }
 
 group = "dev.limebeck"
@@ -23,6 +24,9 @@ dependencies {
 
     implementation("dev.inmo:tgbotapi:18.2.0")
     implementation("dev.inmo:krontab:2.2.9")
+
+    implementation("io.ktor:ktor-serialization-kotlinx-json")
+    implementation("io.ktor:ktor-server-content-negotiation")
 
     implementation("org.ktorm:ktorm-core:4.1.1")
 

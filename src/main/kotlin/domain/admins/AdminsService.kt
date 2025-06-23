@@ -7,27 +7,32 @@ class AdminsService(
     private val repository: AdminsRepository
 ) {
     fun getAllAdmins(): List<AdminInfo> {
-        return repository.getAllAdmins()
+        return repository.getAll()
     }
 
-    fun addAdminWithRawPassword(Id: UUID, rawPassword: String, login: String) {
+    fun addAdminWithRawPassword(rawPassword: String, login: String) {
+        val id = UUID.randomUUID()
         val hash = BCrypt.hashpw(rawPassword, BCrypt.gensalt())
-        val admin = AdminInfo(password = hash, login = login, id = Id)
-        repository.addAdmin(admin)
+        val admin = AdminInfo(id = AdminId(id) , login = login,passwordHash = hash)
+        repository.add(admin)
     }
 
-    fun deleteAdmin(id: UUID) = repository.deleteAdmin(id)
+    fun deleteAdmin(id: UUID) = repository.delete(AdminId(id))
 
     fun updateAdmin(admin: AdminInfo) {
-        val hash = BCrypt.hashpw(admin.password, BCrypt.gensalt())
-        val admin = AdminInfo(password = hash, login = admin.login, id = admin.id)
-        repository.updateAdmin(admin)
+        val hash = BCrypt.hashpw(admin.passwordHash, BCrypt.gensalt())
+        val admin = AdminInfo(passwordHash = hash, login = admin.login, id = admin.id)
+        repository.update(admin)
     }
 
-    fun login(login: String, rawPassword: String): Boolean {
-        val admin = repository.getAdminByLogin(login)
-        return admin?.let { BCrypt.checkpw(rawPassword, it.password) } ?: false
+    fun login(login: String, rawPassword: String): AdminInfo? {
+        val admin = repository.findByLogin(login)
+        return if (admin != null && BCrypt.checkpw(rawPassword, admin.passwordHash)) {
+            admin
+        } else {
+            null
+        }
     }
 
-    fun getAdminById(id: UUID): AdminInfo? = repository.getAdminHashpass(AdminId(id))
+    fun getAdminById(id: UUID): AdminInfo? = repository.findById(AdminId(id))
 }
