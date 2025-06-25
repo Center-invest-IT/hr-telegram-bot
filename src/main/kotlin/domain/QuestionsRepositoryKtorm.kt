@@ -14,7 +14,7 @@ object AnswersTable : Table<Nothing>("answers") {
     val id = uuid("id").primaryKey()
     val userId = long("user_id")
     val userName = varchar("username")
-    val questionId = varchar("question_id")
+    val questionId = uuid("question_id")
     val answer = varchar("answer")
     val dateTime = timestamp("date_time")
 }
@@ -43,7 +43,7 @@ class QuestionsRepositoryKtorm(
     )
 
     private fun answersMapper(r: QueryRowSet) = Answer(
-        questionId = QuestionId(r[AnswersTable.questionId]!!),
+        questionId = QuestionId((r[AnswersTable.questionId]!!).toString()),
         userInfo = UserInfo(
             userId = UserId(RawChatId(r[AnswersTable.userId]!!)),
             username = r[AnswersTable.userName]!!
@@ -71,7 +71,7 @@ class QuestionsRepositoryKtorm(
     override fun addAnswer(userInfo: UserInfo, questionId: QuestionId, answer: String) {
         database.insert(AnswersTable) {
             set(AnswersTable.id, UUID.randomUUID())
-            set(AnswersTable.questionId, questionId.value)
+            set(AnswersTable.questionId, UUID.fromString(questionId.value))
             set(AnswersTable.userId, userInfo.userId.chatId.long)
             set(AnswersTable.userName, userInfo.username)
             set(AnswersTable.answer, answer)
