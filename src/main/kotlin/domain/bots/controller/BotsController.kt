@@ -44,8 +44,8 @@ fun Route.botsRouting(
             }
         }
 
-        get("/search/{username}") {
-            val username = call.parameters["username"] ?: kotlin.run {
+        get("/search/{botUsername}") {
+            val username = call.parameters["botUsername"] ?: kotlin.run {
                 call.respond(HttpStatusCode.BadRequest)
                 return@get
             }
@@ -91,8 +91,8 @@ fun Route.botsRouting(
             }
         }
 
-        put("/{id}") {
-            val id = call.parameters["id"] ?: kotlin.run {
+        put("/{botId}") {
+            val id = call.parameters["botId"] ?: kotlin.run {
                 call.respond(HttpStatusCode.BadRequest)
                 return@put
             }
@@ -134,6 +134,5 @@ fun Route.botsRouting(
                 call.respond(HttpStatusCode.BadRequest)
             }
         }
-
     }
 }
