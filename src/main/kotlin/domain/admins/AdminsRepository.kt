@@ -12,7 +12,9 @@ interface AdminsRepository {
 }
 
 @JvmInline
-value class AdminId(val uuid: UUID)
+value class AdminId(
+    val uuid: UUID
+)
 
 data class AdminInfo(
     val id: AdminId,

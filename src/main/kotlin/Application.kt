@@ -23,7 +23,6 @@ import dev.limebeck.openconf.domain.admin.AdminsService
 import dev.limebeck.openconf.domain.admin.AdminsRepositoryKtorm
 import dev.limebeck.openconf.domain.admins.adminsRouting
 import dev.limebeck.openconf.domain.createQuestionRoutes
-import io.ktor.http.ContentType.Application.Json
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -70,6 +69,9 @@ fun main(args: Array<String>) =
         val bot = telegramBot(config.botToken)
         val chatId = ChatId(RawChatId(config.chatId))
 
+        val adminsService =
+            AdminsService(AdminsRepositoryKtorm(config.dbConfig as DbConfig.KtormConfig))
+
         val filter = flowsUpdatesFilter {}
 
         bot.buildBehaviour(filter) {
@@ -78,10 +80,11 @@ fun main(args: Array<String>) =
 
         embeddedServer(Netty, port = 8080) {
             install(Authentication) {
-                basic {
+                basic("auth-basic") {
                     validate { credentials ->
-                        if (credentials.name == config.auth.username && credentials.password == config.auth.password) {
-                            UserIdPrincipal(credentials.name)
+                        val admin = adminsService.login(credentials.name, credentials.password)
+                        if (admin != null) {
+                            UserIdPrincipal(admin.login)
                         } else {
                             null
                         }
@@ -91,8 +94,7 @@ fun main(args: Array<String>) =
             install(ContentNegotiation) {
                 json(Json {})
             }
-            val adminsService =
-                AdminsService(AdminsRepositoryKtorm(config.dbConfig as DbConfig.KtormConfig))
+
             routing {
                 if (config.botReceiver == BotReceiver.WEBHOOK) {
                     val scope = CoroutineScope(Dispatchers.Default)
@@ -106,8 +108,7 @@ fun main(args: Array<String>) =
                         )
                     }
                 }
-
-                authenticate {
+                authenticate("auth-basic") {
                     createQuestionRoutes(questionsRepository)
                     adminsRouting(adminsService)
                 }
@@ -118,3 +119,4 @@ fun main(args: Array<String>) =
             bot.longPolling(filter).join()
         }
     }
+

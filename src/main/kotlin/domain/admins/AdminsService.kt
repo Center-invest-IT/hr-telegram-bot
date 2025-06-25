@@ -1,5 +1,6 @@
 package dev.limebeck.openconf.domain.admin
 
+import dev.inmo.tgbotapi.types.UserId
 import org.mindrot.jbcrypt.BCrypt
 import java.util.UUID
 
@@ -10,11 +11,12 @@ class AdminsService(
         return repository.getAll()
     }
 
-    fun addAdminWithRawPassword(rawPassword: String, login: String) {
+    fun addAdminWithRawPassword(rawPassword: String, login: String): AdminInfo {
         val id = UUID.randomUUID()
         val hash = BCrypt.hashpw(rawPassword, BCrypt.gensalt())
         val admin = AdminInfo(id = AdminId(id) , login = login,passwordHash = hash)
         repository.add(admin)
+        return admin
     }
 
     fun deleteAdmin(id: UUID) = repository.delete(AdminId(id))
@@ -35,4 +37,13 @@ class AdminsService(
     }
 
     fun getAdminById(id: UUID): AdminInfo? = repository.findById(AdminId(id))
+
+    fun getAdminId(login: String): UUID? {
+        val admin = repository.findByLogin(login)
+        return if (admin != null) {
+            admin.id.uuid
+        } else {
+            null
+        }
+    }
 }

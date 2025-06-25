@@ -1,5 +1,6 @@
 package dev.limebeck.openconf.domain.admins
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -9,13 +10,8 @@ data class AdminCreateRequest(
 )
 
 @Serializable
-data class AdminLoginRequest(
+data class AdminUpdateRequest(
+    val id: String,
     val login: String,
     val password: String
-)
-
-@Serializable
-data class ErrorResponse(
-    val error: String,
-    val details: String? = null
 )

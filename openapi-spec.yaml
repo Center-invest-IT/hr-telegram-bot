@@ -3,7 +3,7 @@ info:
   title: Telegram Bots Management API
   version: 1.0.0
   description: API для управления Telegram чат-ботами, их вопросами и ответами пользователей.
-  
+
 servers:
   - url: http://localhost:8080/api
     description: Local development
@@ -15,6 +15,38 @@ components:
       scheme: basic
 
   schemas:
+    AdminSuccessResponse:
+        type: object
+        required: [ id,login ]
+        properties:
+          id:
+            type: string
+          login:
+            type: string
+
+    ErrorResponse:
+      type: object
+      required: [ code,message,uid ]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        uid:
+          type: string
+
+    AdminInfo:
+      type: object
+      required: [id,login,passwordHash]
+      properties:
+        id:
+          type: string
+          format: uuid
+        login:
+          type: string
+        passwordHash:
+          type: string
+
     Bot:
       type: object
       required: [id, token]
@@ -350,3 +382,163 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Answer'
+  /admins:
+    get:
+      summary: Получить список всех админов
+      security:
+        - BasicAuth: []
+      responses:
+        200:
+          description: Список админов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminInfo'
+
+  /admins/create:
+    post:
+      summary: Создать нового админа
+      security:
+        - BasicAuth: []
+      requestBody:
+        required: true
+        content:
+           application/json:
+            schema:
+              type: object
+              required: [password, login]
+              properties:
+                password:
+                  type: string
+                login:
+                  type: string
+      responses:
+        201:
+          description: Админ успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSuccessResponse'
+
+  /admins/{id}:
+    delete:
+      summary: Удалить админа
+      security:
+        - BasicAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        204:
+          description: Админ успешно удален
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSuccessResponse'
+        400:
+          description: Ошибка Id параметра
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Админ не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /{id}/hashpass:
+    get:
+      summary: получить hash админа по id
+      security:
+        - BasicAuth: [ ]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        200:
+          description: Hash успешно получен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInfo'
+        400:
+          description: Ошибка Id параметра
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Админ не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /{login}/id:
+    get:
+      summary: получить Id админа по логину
+      security:
+        - BasicAuth: [ ]
+      parameters:
+        - in: path
+          name: login
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Id успешно получен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSuccessResponse'
+        400:
+          description: Ошибка login параметра
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Админ не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admins/update:
+    post:
+      summary: Обновить данные админа
+      security:
+        - BasicAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminInfo'
+      responses:
+        200:
+          description: Данные успешно обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSuccessResponse'
+        400:
+          description: Ошибка id параметра
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
