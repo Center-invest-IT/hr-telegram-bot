@@ -160,7 +160,85 @@ paths:
         400:
           description: Ошибка валидации данных
 
+  /bots/search/{botUsername}?status:
+    get:
+      summary: Поиск ботов по их юзернейму с фильтрацией
+      security:
+        - BasicAuth: []
+      parameters:
+        - in: path
+          name: botUsername
+          schema:
+            type: string
+            format: string
+          required: true
+        - in: query
+          name: status
+          schema:
+            type: string
+            format: string
+          required: false
+      responses:
+        200:
+          description: Список ботов
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/Bot'
+        400:
+          description: Ошибка валидации данных
+
   /bots/{botId}:
+    get:
+      summary: Получить бота по айди
+      security:
+        - BasicAuth: []
+      parameters:
+        - in: path
+          name: botId
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        200:
+          description: Информация о боте
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/Bot'
+        400:
+          description: Ошибка валидации данных
+        404:
+          description: Бот с данным айди не найден
+    put:
+      summary: Обновить бота по айди
+      security:
+        - BasicAuth: []
+      parameters:
+        - in: path
+          name: botId
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        200:
+          description: Обновленная информация о боте
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/Bot'
+        400:
+          description: Ошибка валидации данных
+        404:
+          description: Бот с данным айди не найден
     delete:
       summary: Удалить Telegram-бота
       security:
