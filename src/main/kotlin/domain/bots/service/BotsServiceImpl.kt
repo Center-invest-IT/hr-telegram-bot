@@ -10,8 +10,8 @@ import java.util.*
 class BotsServiceImpl(
     private val botsRepository: BotsRepository
 ) : BotsService {
-    override suspend fun getAllBots(): List<Bot> {
-        val bots = botsRepository.findAllBots()
+    override suspend fun getAllBots(botFilter: BotFilter?): List<Bot> {
+        val bots = botsRepository.findAllBots(botFilter)
         return bots
     }
 
@@ -63,10 +63,5 @@ class BotsServiceImpl(
             ?: throw NotFoundException("Bot not found")
 
         botsRepository.deleteBotById(UUID.fromString(id))
-    }
-
-    override suspend fun getBotByUsername(botUsername: String, botFilter: BotFilter?): List<Bot> {
-        val response = botsRepository.findBotsByUsername(botUsername, botFilter)
-        return response
     }
 }

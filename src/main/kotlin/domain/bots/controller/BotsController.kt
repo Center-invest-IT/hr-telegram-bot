@@ -1,8 +1,8 @@
 package dev.limebeck.openconf.domain.bots.controller
 
 import dev.limebeck.openconf.domain.bots.repository.BotFilter
+import dev.limebeck.openconf.domain.bots.repository.BotStatus
 import dev.limebeck.openconf.domain.bots.service.BotsService
-import dev.limebeck.openconf.domain.bots.web.BotStatusDTO
 import dev.limebeck.openconf.domain.bots.web.CreateBotDTO
 import dev.limebeck.openconf.domain.bots.web.mapper.toDTO
 import dev.limebeck.openconf.domain.bots.web.mapper.toEntity
@@ -19,7 +19,21 @@ fun Route.botsRouting(
     route("/bots") {
         get {
             try {
-                val bots = botsService.getAllBots().map { it.toDTO() }
+                val botUsername = call.request.queryParameters["botUsername"]
+                val statusParam = call.request.queryParameters["status"]
+
+                val status = try {
+                    statusParam?.uppercase()?.let { BotStatus.valueOf(it) }
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+
+                val filter = BotFilter(
+                    botUsername = botUsername,
+                    status = status
+                )
+
+                val bots = botsService.getAllBots(filter).map { it.toDTO() }
                 call.respond(HttpStatusCode.OK, bots)
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -39,33 +53,6 @@ fun Route.botsRouting(
                 } else {
                     call.respond(HttpStatusCode.OK, bot.toDTO())
                 }
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest)
-            }
-        }
-
-        get("/search/{botUsername}") {
-            val username = call.parameters["botUsername"] ?: kotlin.run {
-                call.respond(HttpStatusCode.BadRequest)
-                return@get
-            }
-
-            val statusParam = call.request.queryParameters["status"]
-
-            val statusDTO = statusParam?.let {
-                try {
-                    BotStatusDTO.valueOf(it.uppercase())
-                } catch (e: IllegalArgumentException) {
-                    null
-                }
-            }
-
-            val status = statusDTO?.toEntity()
-            val filter = BotFilter(status = status)
-
-            try {
-                val bots = botsService.getBotByUsername(username, filter).map { it.toDTO() }
-                call.respond(HttpStatusCode.OK, bots)
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest)
             }

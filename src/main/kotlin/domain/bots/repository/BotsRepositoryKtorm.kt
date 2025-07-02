@@ -38,10 +38,19 @@ class BotsRepositoryKtorm(
         chatId = r[BotsTable.chatId]
     )
 
-    override fun findAllBots(): List<Bot> {
+    override fun findAllBots(botFilter: BotFilter?): List<Bot> {
         return database
             .from(BotsTable)
             .select()
+            .whereWithConditions {
+                if (botFilter?.botUsername != null) {
+                    it += BotsTable.botUsername like "${botFilter.botUsername}%"
+                }
+
+                if (botFilter?.status != null) {
+                    it += BotsTable.status eq botFilter.status.name
+                }
+            }
             .map(::botsMapper)
     }
 
@@ -52,16 +61,7 @@ class BotsRepositoryKtorm(
             .where {
                 BotsTable.id eq id
             }
-            .map { row ->
-                Bot(
-                    id = row[BotsTable.id]!!,
-                    botUsername = row[BotsTable.botUsername]!!,
-                    botToken = row[BotsTable.botToken]!!,
-                    description = row[BotsTable.description]!!,
-                    status = BotStatus.valueOf(row[BotsTable.status]!!),
-                    chatId = row[BotsTable.chatId]
-                )
-            }
+            .map(::botsMapper)
             .firstOrNull()
     }
 
@@ -91,18 +91,5 @@ class BotsRepositoryKtorm(
 
     override fun deleteBotById(id: UUID) {
         database.delete(BotsTable) { BotsTable.id eq id }
-    }
-
-    override fun findBotsByUsername(botUsername: String, botFilter: BotFilter?): List<Bot> {
-        return database
-            .from(BotsTable)
-            .select()
-            .whereWithConditions {
-                it += BotsTable.botUsername like "$botUsername%"
-                if (botFilter?.status != null) {
-                    it += BotsTable.status eq botFilter.status.name
-                }
-            }
-            .map(::botsMapper)
     }
 }
