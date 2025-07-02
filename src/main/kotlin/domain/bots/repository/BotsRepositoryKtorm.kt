@@ -65,15 +65,25 @@ class BotsRepositoryKtorm(
             .firstOrNull()
     }
 
-    override fun addBot(botUsername: String, botToken: String, description: String, status: BotStatus, chatId: Long?) {
+    override fun addBot(botUsername: String, botToken: String, description: String, status: BotStatus, chatId: Long?): Bot {
+        val id = UUID.randomUUID()
         database.insert(BotsTable) {
-            set(BotsTable.id, UUID.randomUUID())
+            set(BotsTable.id, id)
             set(BotsTable.botToken, botToken)
             set(BotsTable.botUsername, botUsername)
             set(BotsTable.description, description)
             set(BotsTable.status, status.name)
             set(BotsTable.chatId, chatId)
         }
+
+        return Bot(
+            id = id,
+            botUsername = botUsername,
+            botToken = botToken,
+            description = description,
+            status = status,
+            chatId = chatId
+        )
     }
 
     override fun updateBot(id: UUID, botUsername: String, botToken: String, description: String, status: BotStatus, chatId: Long?) {

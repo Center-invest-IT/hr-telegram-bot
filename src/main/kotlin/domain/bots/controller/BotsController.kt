@@ -59,20 +59,20 @@ fun Route.botsRouting(
         }
 
         post {
-            val newBot = call.receiveNullable<CreateBotDTO>() ?: kotlin.run {
+            val createBotDTO = call.receiveNullable<CreateBotDTO>() ?: kotlin.run {
                 call.respond(HttpStatusCode.BadRequest)
                 return@post
             }
 
             try {
-                botsService.addBot(
-                    botUsername = newBot.botUsername,
-                    botToken = newBot.botToken,
-                    botDescription = newBot.description,
-                    status = newBot.status.toEntity(),
-                    chatId = newBot.chatId
+                val newBot = botsService.addBot(
+                    botUsername = createBotDTO.botUsername,
+                    botToken = createBotDTO.botToken,
+                    botDescription = createBotDTO.description,
+                    status = createBotDTO.status.toEntity(),
+                    chatId = createBotDTO.chatId
                 )
-                call.respond(HttpStatusCode.Created, newBot)
+                call.respond(HttpStatusCode.Created, newBot.toDTO())
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest)
             }

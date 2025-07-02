@@ -26,8 +26,8 @@ class BotsServiceImpl(
         botDescription: String,
         status: BotStatus,
         chatId: Long?
-    ) {
-        botsRepository.addBot(botUsername, botToken, botDescription, status, chatId)
+    ): Bot {
+        return botsRepository.addBot(botUsername, botToken, botDescription, status, chatId)
     }
 
     override suspend fun updateBot(
