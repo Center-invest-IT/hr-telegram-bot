@@ -1,12 +1,10 @@
 create table if not exists questions
 (
     id uuid primary key,
+    bot_id uuid not null,
     question varchar not null,
     created_time timestamp not null
 );
-
-
-ALTER TABLE answers RENAME COLUMN date_time TO created_time;
 
 ALTER TABLE answers
 ALTER COLUMN question_id TYPE uuid USING question_id::uuid;

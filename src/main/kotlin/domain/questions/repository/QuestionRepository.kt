@@ -1,22 +1,23 @@
 package dev.limebeck.openconf.domain.questions.repository
 
+import dev.limebeck.openconf.BotId
+import dev.limebeck.openconf.QuestionId
 import dev.limebeck.openconf.domain.Answer
 import java.time.Instant
-import java.util.UUID
 
 interface QuestionRepository {
-    fun findQuestionsByBotId(botId: UUID): List<Question>
-    fun findQuestionById(id: UUID): Question?
-    fun addQuestion(question: String, botId: UUID)
-    fun updateQuestion(id: UUID, question: String)
-    fun deleteQuestion(id: UUID)
-    fun findQuestionAnswers(id: UUID, botId: UUID): List<Answer>
-    fun findAllAnswersByBotId(botId: UUID): List<Answer>
+    fun findQuestionsByBotId(botId: BotId): List<Question>
+    fun findQuestionById(questionId: QuestionId): Question?
+    fun addQuestion(question: String, botId: BotId): Question
+    fun updateQuestion(questionId: QuestionId, question: String)
+    fun deleteQuestion(questionId: QuestionId)
+    fun findQuestionAnswers(questionId: QuestionId, botId: BotId): List<Answer>
+    fun findAllAnswersByBotId(botId: BotId): List<Answer>
 }
 
 data class Question(
-    val id: UUID,
+    val id: QuestionId,
     val question: String,
-    val botId: UUID,
+    val botId: BotId,
     val createdTime: Instant,
 )

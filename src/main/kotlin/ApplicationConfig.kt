@@ -33,6 +33,9 @@ sealed interface DbConfig {
 @JvmInline
 value class QuestionId(val value: String)
 
+@JvmInline
+value class BotId(val value: String)
+
 sealed interface Question {
     val id: QuestionId
     val description: String

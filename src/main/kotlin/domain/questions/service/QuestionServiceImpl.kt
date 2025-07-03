@@ -1,49 +1,50 @@
 package dev.limebeck.openconf.domain.questions.service
 
+import dev.limebeck.openconf.BotId
+import dev.limebeck.openconf.QuestionId
 import dev.limebeck.openconf.domain.Answer
 import dev.limebeck.openconf.domain.questions.repository.Question
 import dev.limebeck.openconf.domain.questions.repository.QuestionRepository
 import io.ktor.server.plugins.*
-import java.util.*
 
 class QuestionServiceImpl(
     private val questionRepository: QuestionRepository
 ) : QuestionService {
-    override suspend fun getQuestionsByBotId(botId: String): List<Question> {
-        return questionRepository.findQuestionsByBotId(UUID.fromString(botId))
+    override suspend fun getQuestionsByBotId(botId: BotId): List<Question> {
+        return questionRepository.findQuestionsByBotId(botId)
     }
 
-    override suspend fun getQuestionById(id: String): Question? {
-        return questionRepository.findQuestionById(UUID.fromString(id))
+    override suspend fun getQuestionById(questionId: QuestionId): Question? {
+        return questionRepository.findQuestionById(questionId)
     }
 
-    override suspend fun addQuestion(question: String, botId: String) {
-        questionRepository.addQuestion(question, UUID.fromString(botId))
+    override suspend fun addQuestion(question: String, botId: BotId): Question {
+        return questionRepository.addQuestion(question, botId)
     }
 
-    override suspend fun updateQuestion(id: String, question: String) {
-        val existingQuestion = questionRepository.findQuestionById(UUID.fromString(id))
+    override suspend fun updateQuestion(questionId: QuestionId, question: String) {
+        val existingQuestion = questionRepository.findQuestionById(questionId)
             ?: throw NotFoundException("Question not found")
 
         if (existingQuestion.question != question ) {
-            questionRepository.updateQuestion(UUID.fromString(id), question)
+            questionRepository.updateQuestion(questionId, question)
         }
     }
 
-    override suspend fun deleteQuestion(id: String) {
-        val existingQuestion = questionRepository.findQuestionById(UUID.fromString(id))
+    override suspend fun deleteQuestion(questionId: QuestionId) {
+        val existingQuestion = questionRepository.findQuestionById(questionId)
             ?: throw NotFoundException("Question not found")
 
-        questionRepository.deleteQuestion(UUID.fromString(id))
+        questionRepository.deleteQuestion(questionId)
     }
 
-    override suspend fun getQuestionAnswers(id: String, botId: String): List<Answer> {
-        val existingQuestion = questionRepository.findQuestionById(UUID.fromString(id))
+    override suspend fun getQuestionAnswers(questionId: QuestionId, botId: BotId): List<Answer> {
+        val existingQuestion = questionRepository.findQuestionById(questionId)
             ?: throw NotFoundException("Question not found")
-        return questionRepository.findQuestionAnswers(UUID.fromString(id), UUID.fromString(botId))
+        return questionRepository.findQuestionAnswers(questionId, botId)
     }
 
-    override suspend fun getAllAnswersByBotId(botId: String): List<Answer> {
-        return questionRepository.findAllAnswersByBotId(UUID.fromString(botId))
+    override suspend fun getAllAnswersByBotId(botId: BotId): List<Answer> {
+        return questionRepository.findAllAnswersByBotId(botId)
     }
 }
